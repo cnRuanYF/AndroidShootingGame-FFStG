@@ -7,7 +7,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Shader;
 
-import com.ruanyf.ffstg.BitmapBackground;
+import com.ruanyf.ffstg.scenes.backgrounds.BitmapBackground;
 import com.ruanyf.ffstg.GameState;
 import com.ruanyf.ffstg.GameView;
 import com.ruanyf.ffstg.utils.GameUtil;
@@ -114,20 +114,20 @@ public class StaffScene extends Scene {
 			canvas.drawBitmap(logoSchoolBmp, x - logoSchoolBmp.getWidth() / 2, y += 128, null);
 
 			paint.setTextSize(20);
-			canvas.drawText("指导老师：谢奇峰", x, y += 108, paint);
+			canvas.drawText("指导老师：谢奇峰　", x, y += 108, paint);
 
 			canvas.drawBitmap(logoFengBmp, x - logoFengBmp.getWidth() / 2, y += 128, null);
 
-			canvas.drawText("制作：阮耀锋", x, y += 172, paint);
-			canvas.drawText("编程：阮耀锋", x, y += 24, paint);
-			canvas.drawText("美工：阮耀锋", x, y += 24, paint);
+			canvas.drawText("制作人：阮耀锋", x, y += 172, paint);
+			canvas.drawText("　编程：阮耀锋", x, y += 24, paint);
+			canvas.drawText("　美工：阮耀锋", x, y += 24, paint);
 			paint.setTextSize(16);
 			canvas.drawText("(部分素材来源于网络)", x, y += 20, paint);
 
 			canvas.drawBitmap(logoWebsiteBmp, x - logoWebsiteBmp.getWidth() / 2, y += 128, null);
 
 			paint.setTextSize(20);
-			canvas.drawText("欢迎访问我的个人网站", x, y += 128, paint);
+			canvas.drawText("欢迎访问我的个人主页", x, y += 128, paint);
 		}
 
 		// 绘制淡入淡出覆盖层
@@ -139,8 +139,8 @@ public class StaffScene extends Scene {
 		if (GameUtil.INSTANCE.isDebug()) {
 			String debugLine1 = "- StaffScene -";
 			String debugLine2 = "Step: " + getStep();
-			canvas.drawText(debugLine1, 20, 30, getDebugPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugPaint());
+			canvas.drawText(debugLine1, 20, 30, getDebugTextPaint());
+			canvas.drawText(debugLine2, 20, 50, getDebugTextPaint());
 		}
 	}
 

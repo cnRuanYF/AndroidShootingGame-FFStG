@@ -1,9 +1,9 @@
-package com.ruanyf.ffstg.enemies;
+package com.ruanyf.ffstg.sprites.enemies;
 
 import android.graphics.Bitmap;
 
-import com.ruanyf.ffstg.Blast;
-import com.ruanyf.ffstg.Bullet;
+import com.ruanyf.ffstg.sprites.Blast;
+import com.ruanyf.ffstg.sprites.Bullet;
 import com.ruanyf.ffstg.GameView;
 import com.ruanyf.ffstg.WeaponType;
 import com.ruanyf.ffstg.utils.GameUtil;
@@ -26,7 +26,7 @@ public class Boss1 extends Enemy {
 		setCenterX(ScreenUtil.INSTANCE.getScreenWidth() / 2);
 		setY(0 - getHeight());
 		setSpeedY(3);
-		setLife(30); // TODO 血量待考量
+		initLife(30); // TODO 血量待考量
 
 		Bitmap blastBmp = GameUtil.INSTANCE.getBitmap("blast_pink_large.png");
 		setBlast(new Blast(blastBmp, blastBmp.getWidth() / 15, blastBmp.getHeight()));
@@ -39,7 +39,6 @@ public class Boss1 extends Enemy {
 		setFireInterval((int) (0.5 * GameView.FPS));
 
 		setVisible(true);
-
 	}
 
 	/**
@@ -58,9 +57,10 @@ public class Boss1 extends Enemy {
 			setWeaponType(WeaponType.SHOTGUN5);
 		}
 
-		// 进场后不再下移
-		if (getCenterY() >= ScreenUtil.INSTANCE.getScreenHeight() / 4) {
-			setSpeedY(0);
+		// 进场后不再下移,开始横向移动
+		if (getCenterY() > ScreenUtil.INSTANCE.getScreenHeight() / 5) {
+			setCenterY(ScreenUtil.INSTANCE.getScreenHeight() / 5); // 归位
+			setSpeed(2,0);
 		}
 
 		// 左右移动(横坐标>屏幕宽度3/4时改为向左移动，反之亦然)

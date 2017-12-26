@@ -1,9 +1,12 @@
-package com.ruanyf.ffstg;
+package com.ruanyf.ffstg.sprites;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 
+import com.ruanyf.ffstg.utils.GameUtil;
 import com.ruanyf.ffstg.utils.ScreenUtil;
 
 import java.util.List;
@@ -31,6 +34,8 @@ public class Sprite {
 	private int frameSequanceIndex; // 帧序列索引
 
 	private Rect src, dst; // 用于多帧裁剪的矩形区
+
+	private Paint debugTextPaint, debugShapePaint;
 
 	/**
 	 * 使用单张图片构建静态Sprite
@@ -71,6 +76,18 @@ public class Sprite {
 		for (int i = 0; i < frameSequance.length; i++) {
 			frameSequance[i] = i; // 按顺序给帧序列赋值
 		}
+
+		// Debug
+		debugTextPaint = new Paint();
+		debugTextPaint.setAntiAlias(true);
+		debugTextPaint.setTextSize(12);
+		debugTextPaint.setShadowLayer(1, 0, 0, Color.BLACK);
+		debugTextPaint.setColor(Color.YELLOW);
+
+		debugShapePaint = new Paint();
+		debugShapePaint.setAntiAlias(true);
+		debugShapePaint.setStyle(Paint.Style.STROKE);
+		debugShapePaint.setColor(Color.YELLOW);
 	}
 
 	/**
@@ -131,7 +148,7 @@ public class Sprite {
 	}
 
 	public void setCenterX(float centerX) {
-		this.x = x - width / 2;
+		this.x = centerX - width / 2;
 	}
 
 	public float getY() {
@@ -147,7 +164,7 @@ public class Sprite {
 	}
 
 	public void setCenterY(float centerY) {
-		this.y = y - height / 2;
+		this.y = centerY - height / 2;
 	}
 
 	public void setPosition(float x, float y) {
@@ -279,6 +296,12 @@ public class Sprite {
 				canvas.drawBitmap(bitmap, src, dst, null);
 			} else if (bitmapList != null) { // 图片列表不为空则按照多张图片方式绘制
 				canvas.drawBitmap(bitmapList.get(frameSequanceIndex), x, y, null);
+			}
+
+			// Debug
+			if (GameUtil.INSTANCE.isDebug()) {
+				canvas.drawText("" + step, x, y, debugTextPaint);
+				canvas.drawRect(x, y, x + width, y + height, debugShapePaint);
 			}
 		}
 	}

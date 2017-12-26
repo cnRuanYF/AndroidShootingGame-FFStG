@@ -1,11 +1,11 @@
-package com.ruanyf.ffstg.enemies;
+package com.ruanyf.ffstg.sprites.enemies;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
-import com.ruanyf.ffstg.Blast;
-import com.ruanyf.ffstg.Bullet;
-import com.ruanyf.ffstg.Sprite;
+import com.ruanyf.ffstg.sprites.Blast;
+import com.ruanyf.ffstg.sprites.Bullet;
+import com.ruanyf.ffstg.sprites.Sprite;
 import com.ruanyf.ffstg.WeaponType;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class Enemy extends Sprite {
 	private Blast blast; // 爆炸效果
 
 	private boolean isDead;
-	private int life;
+	private int lifeCurrent, lifeTotal;
 
 	/**
 	 * 构建敌人Sprite
@@ -50,12 +50,25 @@ public class Enemy extends Sprite {
 		isDead = dead;
 	}
 
-	public int getLife() {
-		return life;
+	public int getLifeCurrent() {
+		return lifeCurrent;
 	}
 
-	public void setLife(int life) {
-		this.life = life;
+	public void setLifeCurrent(int lifeCurrent) {
+		this.lifeCurrent = lifeCurrent;
+	}
+
+	public int getLifeTotal() {
+		return lifeTotal;
+	}
+
+	public void setLifeTotal(int lifeTotal) {
+		this.lifeTotal = lifeTotal;
+	}
+
+	public void initLife(int lifeTotal) {
+		this.lifeCurrent = lifeTotal;
+		this.lifeTotal = lifeTotal;
 	}
 
 	public List<Bullet> getBullets() {
@@ -207,9 +220,9 @@ public class Enemy extends Sprite {
 	 * @param damage 伤害数值
 	 */
 	public void takeDamage(int damage) {
-		life -= damage;
-		if (life <= 0) {
-			life = 0;
+		lifeCurrent -= damage;
+		if (lifeCurrent <= 0) {
+			lifeCurrent = 0;
 			setVisible(false);
 			isDead = true;
 

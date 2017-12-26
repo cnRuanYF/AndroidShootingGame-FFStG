@@ -1,8 +1,9 @@
-package com.ruanyf.ffstg;
+package com.ruanyf.ffstg.sprites;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
+import com.ruanyf.ffstg.WeaponType;
 import com.ruanyf.ffstg.utils.GameUtil;
 import com.ruanyf.ffstg.utils.ScreenUtil;
 

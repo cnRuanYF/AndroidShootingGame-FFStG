@@ -16,10 +16,11 @@ public abstract class Scene {
 
 	private boolean isFading; // 正在渐变
 	private int fadeOpacity; // 渐变透明度
+	private int fadeSpeed; // 渐变速度
 
 	private long step;
 	private float screenWidth, screenHeight;
-	private Paint debugPaint;
+	private Paint debugTextPaint, debugShapePaint;
 
 	private Callback callback;
 
@@ -37,15 +38,21 @@ public abstract class Scene {
 	public Scene() {
 		isFading = true;
 		fadeOpacity = 255;
+		fadeSpeed = 2;
 
 		screenWidth = ScreenUtil.INSTANCE.getScreenWidth();
 		screenHeight = ScreenUtil.INSTANCE.getScreenHeight();
 
-		debugPaint = new Paint();
-		debugPaint.setAntiAlias(true);
-		debugPaint.setTextSize(16);
-		debugPaint.setShadowLayer(2, 0, 0, Color.BLACK);
-		debugPaint.setColor(Color.YELLOW);
+		debugTextPaint = new Paint();
+		debugTextPaint.setAntiAlias(true);
+		debugTextPaint.setTextSize(16);
+		debugTextPaint.setShadowLayer(2, 0, 0, Color.BLACK);
+		debugTextPaint.setColor(Color.YELLOW);
+
+		debugShapePaint = new Paint();
+		debugShapePaint.setAntiAlias(true);
+		debugShapePaint.setStyle(Paint.Style.STROKE);
+		debugShapePaint.setColor(Color.YELLOW);
 	}
 
 	public long getStep() {
@@ -88,12 +95,20 @@ public abstract class Scene {
 		this.fadeOpacity = fadeOpacity;
 	}
 
-	public Paint getDebugPaint() {
-		return debugPaint;
+	public int getFadeSpeed() {
+		return fadeSpeed;
 	}
 
-	public void setDebugPaint(Paint debugPaint) {
-		this.debugPaint = debugPaint;
+	public void setFadeSpeed(int fadeSpeed) {
+		this.fadeSpeed = fadeSpeed;
+	}
+
+	public Paint getDebugTextPaint() {
+		return debugTextPaint;
+	}
+
+	public Paint getDebugShapePaint() {
+		return debugShapePaint;
 	}
 
 	/**
@@ -104,6 +119,15 @@ public abstract class Scene {
 	public void changeScene(GameState gameState) {
 		GameUtil.INSTANCE.setGameState(gameState);
 		callback.onSceneChanged();
+	}
+
+	/**
+	 * 单击被确认的操作
+	 *
+	 * @param x 触摸点x坐标
+	 * @param y 触摸点y坐标
+	 */
+	public void detectSingleTap(float x, float y) {
 	}
 
 	/**
@@ -120,16 +144,15 @@ public abstract class Scene {
 		// 场景切换渐变效果
 		if (isFading) {
 			if (step < 255) { // 淡入
-				fadeOpacity -= 2;
+				fadeOpacity -= fadeSpeed;
 				if (fadeOpacity <= 0) {
 					fadeOpacity = 0;
 					isFading = false;
 				}
 			} else { // 淡出
-				fadeOpacity += 2;
+				fadeOpacity += fadeSpeed;
 				if (fadeOpacity >= 255) {
 					fadeOpacity = 255;
-
 					onEnded(); // 淡出完毕执行的方法
 				}
 			}

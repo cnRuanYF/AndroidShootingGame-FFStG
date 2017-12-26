@@ -128,9 +128,9 @@ public class SplashScene extends Scene {
 			String debugLine1 = "- SplashScene -";
 			String debugLine2 = "Step: " + getStep();
 			String debugLine3 = "fadeOpacity: " + fadeOpacity;
-			canvas.drawText(debugLine1, 20, 30, getDebugPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugPaint());
-			canvas.drawText(debugLine3, 20, 70, getDebugPaint());
+			canvas.drawText(debugLine1, 20, 30, getDebugTextPaint());
+			canvas.drawText(debugLine2, 20, 50, getDebugTextPaint());
+			canvas.drawText(debugLine3, 20, 70, getDebugTextPaint());
 		}
 	}
 }

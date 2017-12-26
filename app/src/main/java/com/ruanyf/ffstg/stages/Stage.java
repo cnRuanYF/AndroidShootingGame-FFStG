@@ -2,8 +2,8 @@ package com.ruanyf.ffstg.stages;
 
 import android.graphics.Canvas;
 
-import com.ruanyf.ffstg.BitmapBackground;
-import com.ruanyf.ffstg.enemies.Enemy;
+import com.ruanyf.ffstg.scenes.backgrounds.Background;
+import com.ruanyf.ffstg.sprites.enemies.Enemy;
 import com.ruanyf.ffstg.utils.ScreenUtil;
 
 import java.util.ArrayList;
@@ -16,8 +16,8 @@ import java.util.List;
 public abstract class Stage {
 
 	private float screenWidth, screenHeight;
-	private long step;
-	private BitmapBackground bitmapBackground;
+	private long step,bossStep;
+	private Background background;
 
 	private List<Enemy> enemies;
 	private Enemy boss;
@@ -46,12 +46,20 @@ public abstract class Stage {
 		this.step = step;
 	}
 
-	public BitmapBackground getBitmapBackground() {
-		return bitmapBackground;
+	public long getBossStep() {
+		return bossStep;
 	}
 
-	public void setBitmapBackground(BitmapBackground bitmapBackground) {
-		this.bitmapBackground = bitmapBackground;
+	public void setBossStep(long bossStep) {
+		this.bossStep = bossStep;
+	}
+
+	public Background getBackground() {
+		return background;
+	}
+
+	public void setBackground(Background background) {
+		this.background = background;
 	}
 
 	public List<Enemy> getEnemies() {
@@ -84,7 +92,7 @@ public abstract class Stage {
 	 */
 	public void doLogic() {
 		step++;
-		bitmapBackground.doLogic();
+		background.doLogic();
 		onProgress();
 
 		// 执行敌机逻辑
@@ -106,7 +114,7 @@ public abstract class Stage {
 	 * @param canvas 画布对象
 	 */
 	public void doDraw(Canvas canvas) {
-		bitmapBackground.doDraw(canvas);
+		background.doDraw(canvas);
 
 		// 执行敌机绘制
 		if (enemies != null) {

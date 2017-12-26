@@ -1,6 +1,6 @@
 package com.ruanyf.ffstg.utils;
 
-import com.ruanyf.ffstg.Sprite;
+import com.ruanyf.ffstg.sprites.Sprite;
 
 /**
  * 碰撞检测工具类

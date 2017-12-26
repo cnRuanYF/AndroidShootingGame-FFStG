@@ -2,11 +2,11 @@ package com.ruanyf.ffstg.stages;
 
 import android.graphics.Bitmap;
 
-import com.ruanyf.ffstg.BitmapBackground;
-import com.ruanyf.ffstg.Blast;
-import com.ruanyf.ffstg.Bullet;
-import com.ruanyf.ffstg.enemies.Boss1;
-import com.ruanyf.ffstg.enemies.Enemy;
+import com.ruanyf.ffstg.scenes.backgrounds.BitmapBackground;
+import com.ruanyf.ffstg.sprites.Blast;
+import com.ruanyf.ffstg.sprites.Bullet;
+import com.ruanyf.ffstg.sprites.enemies.Boss1;
+import com.ruanyf.ffstg.sprites.enemies.Enemy;
 import com.ruanyf.ffstg.GameView;
 import com.ruanyf.ffstg.WeaponType;
 import com.ruanyf.ffstg.utils.GameUtil;
@@ -26,8 +26,9 @@ public class Stage1 extends Stage {
 
 	public Stage1() {
 		super();
-		setBitmapBackground(new BitmapBackground(GameUtil.INSTANCE.getBitmap("background1.png")));
-		getBitmapBackground().setMoveSpeed(1.5f);
+		setBossStep(GameView.FPS * 30); // Boss在30秒出现
+		setBackground(new BitmapBackground(GameUtil.INSTANCE.getBitmap("background1.png")));
+		getBackground().setSpeed(1.5f);
 		enemyBitmap1 = GameUtil.INSTANCE.getBitmap("enemy_black_small.png");
 		bulletBitmap2 = GameUtil.INSTANCE.getBitmap("bullet2.png");
 		blastBmp1 = GameUtil.INSTANCE.getBitmap("blast_yellow_small.png");
@@ -54,7 +55,7 @@ public class Stage1 extends Stage {
 					enemy.setSpeed(0, 3);
 					enemy.setBlast(new Blast(blastBmp1, blastBmp1.getWidth() / 15, blastBmp1.getHeight()));
 					enemy.setVisible(true);
-					enemy.setLife(1);
+					enemy.setLifeCurrent(1);
 					getEnemies().add(enemy);
 				}
 			}
@@ -69,7 +70,7 @@ public class Stage1 extends Stage {
 				if (enemy.isReusable()) {
 					enemy.setPosition((float) ((getScreenWidth() - enemy.getWidth()) * Math.random()), -enemy.getHeight());
 					enemy.setVisible(true);
-					enemy.setLife(1);
+					enemy.setLifeCurrent(1);
 					break;
 				}
 			}
@@ -101,15 +102,15 @@ public class Stage1 extends Stage {
 						enemy.setFireInterval(GameView.FPS);
 						enemy.setWeaponType(WeaponType.NORMAL);
 					}
-					enemy.setLife(1); // TODO 不同敌人血量不同
+					enemy.setLifeCurrent(1); // TODO 不同敌人血量不同
 					enemy.setVisible(true);
 					break;
 				}
 			}
 		}
 
-		// 30秒出现Boss
-		if (getStep() == 30 * GameView.FPS) {
+		// 出现Boss
+		if (getStep() == getBossStep()) {
 			setBoss(new Boss1());
 		}
 

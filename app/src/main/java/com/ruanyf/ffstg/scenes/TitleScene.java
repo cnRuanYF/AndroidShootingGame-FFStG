@@ -1,15 +1,16 @@
 package com.ruanyf.ffstg.scenes;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.Shader;
 
 import com.ruanyf.ffstg.GameState;
-import com.ruanyf.ffstg.GameView;
-import com.ruanyf.ffstg.Sprite;
+import com.ruanyf.ffstg.MainActivity;
+import com.ruanyf.ffstg.scenes.backgrounds.Background;
+import com.ruanyf.ffstg.scenes.backgrounds.lightfallBackground;
 import com.ruanyf.ffstg.utils.GameUtil;
 
 import java.util.ArrayList;
@@ -21,18 +22,35 @@ import java.util.List;
  */
 public class TitleScene extends Scene {
 
-	private Shader logoShineShader;
-	private Paint logoPaint, logoShinePaint;
-	private List<Paint> paints;
+	private static final String[] MENU_STRINGS = new String[]{
+			"开始游戏", "天梯排行", "创作名单", "游戏设置", "退出游戏"};
+	private static final int MENU_START = 0;
+	private static final int MENU_RANK = 1;
+	private static final int MENU_STAFF = 2;
+	private static final int MENU_SETTING = 3;
+	private static final int MENU_QUIT = 4;
 
-	private List<Sprite> meteors;
-	private Bitmap light64Bmp, light128Bmp, light512Bmp, lightLongBmp;
+	private float screenCenterX, screenCenterY, menuY;
+
+	private Shader logoShineShader;
+	private Paint logoPaint, logoShinePaint, menuPaint, menuFadePaint;
+	private List<Paint> logoPaints;
+	private Background background;
+
+	private List<RectF> menuAreas;
+	private int selectedMenuIndex; // 已选菜单项索引
 
 	/**
 	 * 构造
 	 */
 	public TitleScene() {
+		screenCenterX = getScreenWidth() / 2;
+		screenCenterY = getScreenHeight() / 2;
+		menuY = screenCenterY + 48;
+		background = new lightfallBackground();
+		setFadeSpeed(5);
 
+		// Logo绘制相关初始化
 		logoPaint = new Paint();
 		logoPaint.setAntiAlias(true);
 		logoPaint.setTextAlign(Paint.Align.CENTER);
@@ -45,34 +63,57 @@ public class TitleScene extends Scene {
 		logoShinePaint.setColor(Color.BLACK);
 		logoShinePaint.setShadowLayer(8, 0, 0, Color.BLACK);
 
-		paints = new ArrayList<>();
-		paints.add(logoPaint);
-		paints.add(logoShinePaint);
-		paints.add(logoShinePaint); // 发光层绘制两遍
+		logoPaints = new ArrayList<>();
+		logoPaints.add(logoPaint);
+		logoPaints.add(logoShinePaint);
+		logoPaints.add(logoShinePaint); // 发光层绘制两遍
 
-		light64Bmp = GameUtil.INSTANCE.getBitmap("lights/light_circle_64_a50.png");
-		light128Bmp = GameUtil.INSTANCE.getBitmap("lights/light_circle_128_a50.png");
-		light512Bmp = GameUtil.INSTANCE.getBitmap("lights/light_circle_512_a10.png");
-		lightLongBmp = GameUtil.INSTANCE.getBitmap("lights/light_long45d_a50.png");
+		// 菜单绘制相关
+		menuPaint = new Paint();
+		menuPaint.setAntiAlias(true);
+		menuPaint.setTextAlign(Paint.Align.CENTER);
+		menuPaint.setColor(Color.WHITE);
+		menuPaint.setShadowLayer(4, 0, 0, Color.BLACK);
 
-		// 流星
-		meteors = new ArrayList<>();
-		for (int i = 0; i < 50; i++) {
-			Sprite sprite = null;
-			if (i % 4 == 0) {
-				sprite = new Sprite(light64Bmp);
-				sprite.setSpeed(-5, 5);
-			} else if ((i + 1) % 4 == 0) {
-				sprite = new Sprite(light128Bmp);
-				sprite.setSpeed(-6, 6);
-			} else if ((i + 2) % 4 == 0) {
-				sprite = new Sprite(light512Bmp);
-				sprite.setSpeed(-8, 8);
-			} else {
-				sprite = new Sprite(lightLongBmp);
-				sprite.setSpeed(-4, 4);
+		menuFadePaint = new Paint();
+		menuFadePaint.setAntiAlias(true);
+		menuFadePaint.setTextAlign(Paint.Align.CENTER);
+		menuFadePaint.setTextSize(32);
+		menuFadePaint.setColor(Color.WHITE);
+		menuFadePaint.setShadowLayer(1, 0, 0, Color.WHITE);
+
+		menuAreas = new ArrayList<>();
+		for (int i = 0; i < MENU_STRINGS.length; i++) {
+			RectF rectF = new RectF();
+			rectF.set(screenCenterX - 64, menuY - 28 + i * 64,
+					screenCenterX + 64, menuY + 4 + i * 64);
+			menuAreas.add(rectF);
+		}
+
+		selectedMenuIndex = -1;
+	}
+
+	/**
+	 * 单击被确认的操作
+	 */
+	@Override
+	public void detectSingleTap(float x, float y) {
+		if (!isFading()) { // 防止渐变过程再次选择别的项目
+			for (int i = 0; i < MENU_STRINGS.length; i++) {
+				if (menuAreas.get(i).contains(x, y)) {
+					if (i == MENU_RANK) {
+						break; // 排行榜暂不可用
+					} else if (i == MENU_SETTING) {
+						GameUtil.INSTANCE.showGameSetting();
+					} else {
+						setFadeSpeed(8);
+						setFading(true);
+						selectedMenuIndex = i;
+					}
+					break;
+				}
 			}
-			meteors.add(sprite);
+
 		}
 	}
 
@@ -83,23 +124,12 @@ public class TitleScene extends Scene {
 	public void doLogic() {
 		super.doLogic();
 
-		// 流星
-		if (getStep() % 20 == 0) {
-			for (Sprite sprite : meteors) {
-				if (!sprite.isVisible()) {
-					sprite.setPosition(getScreenWidth(), -sprite.getHeight() / 2 - getScreenWidth()
-							+ (getScreenWidth() + getScreenHeight()) * (float) Math.random());
-					sprite.setVisible(true);
-				}
-			}
-		}
-		for (Sprite sprite : meteors) {
-			sprite.doLogic();
-		}
+		// 背景
+		background.doLogic();
 
 		// 游戏LOGO
 		int shineOffset = (int) ((getStep() * 5) % getScreenWidth());
-		logoShineShader = new LinearGradient(shineOffset - 100, shineOffset - 100,
+		logoShineShader = new LinearGradient(shineOffset - 128, shineOffset - 128,
 				shineOffset, shineOffset,
 				new int[]{Color.argb(0, 255, 255, 255),
 						Color.argb(255, 255, 255, 255),
@@ -107,11 +137,12 @@ public class TitleScene extends Scene {
 				new float[]{0, 0.5f, 1}, Shader.TileMode.CLAMP);
 		logoShinePaint.setShader(logoShineShader);
 
-		// TODO test 5秒后跳转
-		if (getStep() > GameView.FPS * 10) {
-			setFading(true);
+		// 菜单选中的效果
+		if (isFading() && selectedMenuIndex > -1) {
+			menuFadePaint.setTextScaleX(menuFadePaint.getTextScaleX() * 1.02f);
+			menuFadePaint.setAlpha(255 - getFadeOpacity());
+			menuFadePaint.setShadowLayer(getFadeOpacity() / 8, 0, 0, Color.WHITE);
 		}
-
 	}
 
 	/**
@@ -124,22 +155,40 @@ public class TitleScene extends Scene {
 
 		// 绘制背景
 		canvas.drawColor(Color.BLACK);
-
-		// 流星
-		for (Sprite sprite : meteors) {
-			sprite.doDraw(canvas);
-		}
+		background.doDraw(canvas);
 
 		// 绘制游戏LOGO
-		for (Paint paint : paints) {
+		for (Paint paint : logoPaints) {
 			paint.setTextSize(100);
 			paint.setStyle(Paint.Style.STROKE);
 			paint.setStrokeWidth(4);
-			canvas.drawText("FFStG", getScreenWidth() / 2, 220, paint);
+			canvas.drawText("FFStG", screenCenterX, 220, paint);
 			paint.setStyle(Paint.Style.FILL);
 			paint.setTextSize(20);
-			canvas.drawText("Feng's Flight Shooting Game", getScreenWidth() / 2, 244, paint);
+			canvas.drawText("Feng's Flight Shooting Game", screenCenterX, 244, paint);
 		}
+
+		// 绘制菜单
+		menuPaint.setTextSize(32);
+		for (int i = 0; i < MENU_STRINGS.length; i++) {
+			menuPaint.setColor(Color.WHITE);
+			if (i == MENU_RANK) {
+				menuPaint.setAlpha(128); // 排行榜暂不可用
+			}
+			canvas.drawText(MENU_STRINGS[i], screenCenterX, menuY + i * 64, menuPaint);
+		}
+
+		// 菜单选中特效
+		if (isFading() && selectedMenuIndex > -1) {
+			canvas.drawText(MENU_STRINGS[selectedMenuIndex],
+					screenCenterX, menuY + selectedMenuIndex * 64, menuFadePaint);
+		}
+
+		// 版权信息
+		menuPaint.setTextSize(16);
+		menuPaint.setAlpha(128);
+		canvas.drawText("Copyright © 2017 Yaofeng Ruan",
+				screenCenterX, getScreenHeight() - 48, menuPaint);
 
 		// 绘制淡入淡出覆盖层
 		if (isFading()) {
@@ -148,10 +197,14 @@ public class TitleScene extends Scene {
 
 		// 开启调试的情况下绘制调试信息
 		if (GameUtil.INSTANCE.isDebug()) {
+			for (RectF r : menuAreas) {
+				canvas.drawRect(r, getDebugShapePaint());
+			}
+
 			String debugLine1 = "- TitleScene -";
 			String debugLine2 = "Step: " + getStep();
-			canvas.drawText(debugLine1, 20, 30, getDebugPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugPaint());
+			canvas.drawText(debugLine1, 20, 30, getDebugTextPaint());
+			canvas.drawText(debugLine2, 20, 50, getDebugTextPaint());
 		}
 	}
 
@@ -160,7 +213,17 @@ public class TitleScene extends Scene {
 	 */
 	@Override
 	public void onEnded() {
-		changeScene(GameState.TITLE);
+		switch (selectedMenuIndex) {
+			case MENU_START: // 开始游戏
+				changeScene(GameState.BATTLE);
+				break;
+			case MENU_STAFF: // 制作人名单
+				changeScene(GameState.STAFF);
+				break;
+			case MENU_QUIT: // 结束游戏
+				((MainActivity) GameUtil.INSTANCE.getContext()).finish();
+				break;
+		}
 	}
 
 }

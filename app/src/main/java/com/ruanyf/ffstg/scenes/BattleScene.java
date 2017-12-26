@@ -4,15 +4,17 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
-import com.ruanyf.ffstg.Bullet;
+import com.ruanyf.ffstg.sprites.Bullet;
 import com.ruanyf.ffstg.GameState;
 import com.ruanyf.ffstg.WeaponType;
-import com.ruanyf.ffstg.enemies.Enemy;
-import com.ruanyf.ffstg.Player;
+import com.ruanyf.ffstg.sprites.enemies.Enemy;
+import com.ruanyf.ffstg.sprites.Player;
 import com.ruanyf.ffstg.stages.Stage;
 import com.ruanyf.ffstg.utils.CollisionUtil;
 import com.ruanyf.ffstg.utils.GameUtil;
 import com.ruanyf.ffstg.utils.ScreenUtil;
+
+import java.text.NumberFormat;
 
 /**
  * 战斗场景类
@@ -26,7 +28,8 @@ public class BattleScene extends Scene {
 	private long score; // 游戏得分
 	private boolean isGameover; // 是否游戏结束
 
-	private Paint bigPaint, scorePaint;
+	private Paint bigPaint, scorePaint, progressBarPaint, progressTextPaint;
+	private float progress;
 
 	public BattleScene() {
 
@@ -37,12 +40,21 @@ public class BattleScene extends Scene {
 		bigPaint.setAntiAlias(true);
 		bigPaint.setTextAlign(Paint.Align.CENTER);
 		bigPaint.setShadowLayer(5, 0, 0, Color.RED);
+
 		scorePaint = new Paint();
 		scorePaint.setColor(Color.CYAN);
 		scorePaint.setTextSize(24);
 		scorePaint.setAntiAlias(true);
 		scorePaint.setTextAlign(Paint.Align.RIGHT);
 		scorePaint.setShadowLayer(2, 0, 0, Color.BLACK);
+
+		progressBarPaint = new Paint();
+		progressBarPaint.setAntiAlias(true);
+		progressTextPaint = new Paint();
+		progressTextPaint.setAntiAlias(true);
+		progressTextPaint.setTextSize(14);
+		progressTextPaint.setColor(Color.WHITE);
+		progressTextPaint.setAlpha(192);
 	}
 
 	public BattleScene(Stage stage) {
@@ -158,6 +170,22 @@ public class BattleScene extends Scene {
 				isGameover = true;
 				setFading(true);
 			}
+
+			// 游戏进度条逻辑
+			if (stage.getStep() < stage.getBossStep()) {
+				// Boss未出现的情形，指示关卡进度
+				progress = (float) stage.getStep() / stage.getBossStep();
+				progressBarPaint.setColor(Color.argb(192,
+						(int) (255 * progress), (int) (255 * (1 - progress)), (int) (255 * (1 - progress))));
+			} else {
+				// 否则指示Boss血量 (平滑处理)
+				float realProgress = (float) stage.getBoss().getLifeCurrent() / stage.getBoss().getLifeTotal();
+				progress = progress - (progress - realProgress) * 0.1f;
+				progressBarPaint.setColor(Color.RED);
+				progressBarPaint.setAlpha(192);
+			}
+			progressTextPaint.setTextAlign(progress > 0.5f ? Paint.Align.RIGHT : Paint.Align.LEFT);
+
 		}
 
 	}
@@ -173,16 +201,25 @@ public class BattleScene extends Scene {
 		stage.doDraw(canvas);
 		player.doDraw(canvas);
 
+		// 得分
 		canvas.drawText("Score: " + score,
-				ScreenUtil.INSTANCE.getScreenWidth() - 20, 30, scorePaint);
+				ScreenUtil.INSTANCE.getScreenWidth() - 24, 48, scorePaint);
 
+		// 游戏进度条绘制
+		canvas.drawRect(0, 0, getScreenWidth() * progress, 18f * (255 - getFadeOpacity()) / 255, progressBarPaint);
+		progressBarPaint.setColor(Color.BLACK);
+		progressBarPaint.setAlpha(192);
+		canvas.drawRect(getScreenWidth() * progress, 0, getScreenWidth(), 18f * (255 - getFadeOpacity()) / 255, progressBarPaint);
+		String progressText = (stage.getStep() < stage.getBossStep() ? " PROGRESS: " : " BOSSLIFE: ")
+				+ NumberFormat.getPercentInstance().format(progress) +" ";
+		canvas.drawText(progressText, getScreenWidth() * progress, 15f * (255 - getFadeOpacity()) / 255, progressTextPaint);
+
+		// 游戏胜利或失败的绘制
 		if (isGameover) {
 			// TODO 暂时简单绘制，待美化
 			canvas.drawText("GAME OVER", ScreenUtil.INSTANCE.getScreenWidth() / 2,
 					ScreenUtil.INSTANCE.getScreenHeight() / 2, bigPaint);
-		}
-
-		if (stage.isWin()) {
+		} else if (stage.isWin()) {
 			// TODO 暂时简单绘制，待美化
 			bigPaint.setShadowLayer(5, 0, 0, Color.GREEN);
 			canvas.drawText("YOU WIN", ScreenUtil.INSTANCE.getScreenWidth() / 2,
@@ -199,10 +236,10 @@ public class BattleScene extends Scene {
 			String debugLine1 = "- BattleScene -";
 			String debugLine2 = "Step: " + getStep();
 			String debugLine3 = "Boss: "
-					+ (stage.getBoss() != null ? stage.getBoss().getLife() + " Life" : "Null");
-			canvas.drawText(debugLine1, 20, 30, getDebugPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugPaint());
-			canvas.drawText(debugLine3, 20, 70, getDebugPaint());
+					+ (stage.getBoss() != null ? stage.getBoss().getLifeCurrent() + " Life" : "Null");
+			canvas.drawText(debugLine1, 20, 50, getDebugTextPaint());
+			canvas.drawText(debugLine2, 20, 70, getDebugTextPaint());
+			canvas.drawText(debugLine3, 20, 90, getDebugTextPaint());
 		}
 
 	}
@@ -212,7 +249,11 @@ public class BattleScene extends Scene {
 	 */
 	@Override
 	public void onEnded() {
-		changeScene(GameState.STAFF);
+		if (isGameover) {
+			changeScene(GameState.TITLE);
+		} else {
+			changeScene(GameState.STAFF);
+		}
 	}
 
 }

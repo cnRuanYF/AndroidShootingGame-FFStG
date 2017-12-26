@@ -15,6 +15,10 @@ import com.ruanyf.ffstg.scenes.Scene;
 import com.ruanyf.ffstg.scenes.SplashScene;
 import com.ruanyf.ffstg.scenes.StaffScene;
 import com.ruanyf.ffstg.scenes.TitleScene;
+import com.ruanyf.ffstg.sprites.Blast;
+import com.ruanyf.ffstg.sprites.Bullet;
+import com.ruanyf.ffstg.sprites.Player;
+import com.ruanyf.ffstg.stages.Stage;
 import com.ruanyf.ffstg.stages.Stage1;
 import com.ruanyf.ffstg.utils.GameUtil;
 import com.ruanyf.ffstg.utils.ScreenUtil;
@@ -30,23 +34,19 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 
 	public static final int FPS = 60; // 设计帧率
 	public static final int FRAME_PERIOD = 1000 / FPS; // 帧周期
-	private int frameSkipped;
-
-	private long step;
+	private long frameCount, frameSkipped; // 帧统计
 
 	private float screenWidth, screenHeight, screenScale; // 屏幕适配相关
 
 	private boolean isRunning;
 
 	private SurfaceHolder holder;
-
 	private Canvas canvas;
 	private Paint debugPaint;
 
 	private GestureDetector gestureDetector;
 
-	private Scene scene;
-	private BattleScene battleScene;
+	private Scene currentScene;
 
 	public GameView(Context context) {
 		super(context);
@@ -74,23 +74,31 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 				switch (GameUtil.INSTANCE.getGameState()) {
 					case BATTLE:
 						// distanceX/Y值为上次onScroll触发是的坐标 - 本次触发时的坐标，所以取负值
-						battleScene.getPlayer().move(-distanceX / screenScale, -distanceY / screenScale);
+						((BattleScene) currentScene).getPlayer().move(-distanceX / screenScale, -distanceY / screenScale);
+						break;
+					case STAFF:
+						currentScene.setStep(currentScene.getStep() + (long) (distanceY / screenScale / 2));
+						if (currentScene.getStep() < 0) {
+							currentScene.setStep(0);
+						}
 						break;
 					default:
 						break;
 				}
-
 				return super.onScroll(e1, e2, distanceX, distanceY);
 			}
 
 			@Override
-			public boolean onDoubleTap(MotionEvent e) {
-
-				// TODO Test
-				init();
-
-				return super.onDoubleTap(e);
+			public boolean onSingleTapConfirmed(MotionEvent e) {
+				currentScene.detectSingleTap(e.getX() / screenScale, e.getY() / screenScale);
+				return super.onSingleTapConfirmed(e);
 			}
+
+//			@Override
+//			public boolean onDoubleTap(MotionEvent e) {
+//				init(); // TODO Test
+//				return super.onDoubleTap(e);
+//			}
 		});
 
 		init(); // 初始化
@@ -100,23 +108,21 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 	 * 初始化
 	 */
 	private void init() {
-//		scene = new SplashScene();
-		scene = new TitleScene();
-//		scene = new StaffScene();
-		scene.addCallback(this); // 添加回调监听
+//		currentScene = new SplashScene();
+		currentScene = new TitleScene();
+//		currentScene = new StaffScene();
+		currentScene.addCallback(this); // 添加回调监听
 	}
 
 	/**
 	 * 逻辑操作
 	 */
 	public void doLogic() {
-		step++;
+		frameCount++;
 
-		// 根据当前场景执行逻辑
-		if (GameUtil.INSTANCE.getGameState() == GameState.BATTLE) {
-			battleScene.doLogic();
-		} else {
-			scene.doLogic();
+		// 执行当前场景逻辑
+		if (currentScene != null) {
+			currentScene.doLogic();
 		}
 	}
 
@@ -129,37 +135,27 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 			canvas.save();
 			canvas.scale(screenScale, screenScale); // 根据缩放比例改变画布坐标系
 
-			// 根据当前场景执行绘制
-			if (GameUtil.INSTANCE.getGameState() == GameState.BATTLE) {
-				if (battleScene != null) {
-					battleScene.doDraw(canvas);
-				}
-			} else {
-				if (scene != null) {
-					scene.doDraw(canvas);
-				}
+			// 绘制当前场景
+			if (currentScene != null) {
+				currentScene.doDraw(canvas);
 			}
 
-			// 开启调试的情况下绘制调试信息
-			if (GameUtil.INSTANCE.isDebug()) {
-
-				String debugLine1 = "-- DEBUG MODE --";
-				String debugLine2 = "FrameCount(GameView.Step): " + step;
-				String debugLine3, debugLine4;
+			// 绘制FPS信息
+			if (GameUtil.INSTANCE.isShowFPS()) {
+				String strFrameCount = "FrameCount: " + frameCount;
+				String strFPS, strFPS2;
 
 				if (GameUtil.INSTANCE.isFrameSkipEnable()) {
-					debugLine3 = "FrameSkipped: " + frameSkipped;
-					debugLine4 = "Ave.FPS: " + FPS * (step - frameSkipped) / step + " / " + FPS;
+					strFPS = "FrameSkipped: " + frameSkipped;
+					strFPS2 = "Ave.FPS: " + FPS * (frameCount - frameSkipped) / frameCount + " / " + FPS;
 				} else {
-					debugLine3 = "DesignFPS: " + FPS;
-					debugLine4 = "";
+					strFPS = "DesignFPS: " + FPS;
+					strFPS2 = "";
 				}
 
-				canvas.drawText(debugLine1, 20, screenHeight - 10, debugPaint);
-				canvas.drawText(debugLine2, 20, screenHeight - 30, debugPaint);
-				canvas.drawText(debugLine3, 20, screenHeight - 50, debugPaint);
-				canvas.drawText(debugLine4, 20, screenHeight - 70, debugPaint);
-
+				canvas.drawText(strFrameCount, 20, screenHeight - 10, debugPaint);
+				canvas.drawText(strFPS, 20, screenHeight - 30, debugPaint);
+				canvas.drawText(strFPS2, 20, screenHeight - 50, debugPaint);
 			}
 
 			canvas.restore(); // 还原画布坐标系
@@ -174,40 +170,35 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 
 	@Override
 	public void onSceneChanged() {
-		battleScene = null;
-		scene = null;
-		if (GameUtil.INSTANCE.getGameState() == GameState.BATTLE) {
-
-			// TODO 默认战斗
-			List<Bullet> bullets = new ArrayList<>();
-			for (int i = 0; i < 100; i++) {
-				Bullet bullet = new Bullet(GameUtil.INSTANCE.getBitmap("bullet1.png"));
-				bullets.add(bullet);
-			}
-			Player testPlayer = new Player(GameUtil.INSTANCE.getBitmap("player_green.png"));
-			testPlayer.setVisible(true);
-			testPlayer.setCenterPosition(screenWidth / 2, screenHeight - 200);
-			testPlayer.setBullets(bullets);
-			Bitmap blastBmp = GameUtil.INSTANCE.getBitmap("blast_green_middle.png");
-			testPlayer.setBlast(new Blast(blastBmp, blastBmp.getWidth() / 15, blastBmp.getHeight()));
-			battleScene = new BattleScene(new Stage1());
-			battleScene.setPlayer(testPlayer);
-
-			battleScene.addCallback(this); // 添加回调监听
-		} else {
-			switch (GameUtil.INSTANCE.getGameState()) {
-				case SPLASH:
-					scene = new SplashScene();
-					break;
-				case TITLE:
-					scene = new TitleScene();
-					break;
-				case STAFF:
-					scene = new StaffScene();
-					break;
-			}
-			scene.addCallback(this); // 添加回调监听
+		currentScene = null;
+		switch (GameUtil.INSTANCE.getGameState()) {
+			case BATTLE:
+				// TODO 默认战斗
+				List<Bullet> bullets = new ArrayList<>();
+				for (int i = 0; i < 100; i++) {
+					Bullet bullet = new Bullet(GameUtil.INSTANCE.getBitmap("bullet1.png"));
+					bullets.add(bullet);
+				}
+				Player testPlayer = new Player(GameUtil.INSTANCE.getBitmap("player_green.png"));
+				testPlayer.setVisible(true);
+				testPlayer.setCenterPosition(screenWidth / 2, screenHeight - 200);
+				testPlayer.setBullets(bullets);
+				Bitmap blastBmp = GameUtil.INSTANCE.getBitmap("blast_green_middle.png");
+				testPlayer.setBlast(new Blast(blastBmp, blastBmp.getWidth() / 15, blastBmp.getHeight()));
+				currentScene = new BattleScene(new Stage1());
+				((BattleScene) currentScene).setPlayer(testPlayer);
+				break;
+			case SPLASH:
+				currentScene = new SplashScene();
+				break;
+			case TITLE:
+				currentScene = new TitleScene();
+				break;
+			case STAFF:
+				currentScene = new StaffScene();
+				break;
 		}
+		currentScene.addCallback(this); // 添加回调监听
 	}
 
 	/* --------------------------------

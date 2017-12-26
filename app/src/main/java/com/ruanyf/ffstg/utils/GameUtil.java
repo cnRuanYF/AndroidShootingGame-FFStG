@@ -1,6 +1,8 @@
 package com.ruanyf.ffstg.utils;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -18,7 +20,7 @@ public enum GameUtil {
 	private Context context;
 	private GameState gameState;
 
-	private boolean isDebug, isFrameSkipEnable, isInvincibleMode;
+	private boolean isShowFPS, isDebug, isFrameSkipEnable, isInvincibleMode;
 
 	public Context getContext() {
 		return context;
@@ -51,6 +53,14 @@ public enum GameUtil {
 		return null;
 	}
 
+	public boolean isShowFPS() {
+		return isShowFPS;
+	}
+
+	public void setShowFPS(boolean showFPS) {
+		isShowFPS = showFPS;
+	}
+
 	public boolean isDebug() {
 		return isDebug;
 	}
@@ -73,5 +83,33 @@ public enum GameUtil {
 
 	public void setInvincibleMode(boolean invincibleMode) {
 		isInvincibleMode = invincibleMode;
+	}
+
+	public void showGameSetting() {
+		String[] optionTexts = {"显示FPS", "显示调试信息", "开启跳帧", "玩家无敌"};
+		boolean[] optionValues = {isShowFPS, isDebug, isFrameSkipEnable, isInvincibleMode};
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle("Debug选项");
+		builder.setMultiChoiceItems(optionTexts, optionValues, new DialogInterface.OnMultiChoiceClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+				switch (which) {
+					case 0:
+						GameUtil.INSTANCE.setShowFPS(isChecked);
+						break;
+					case 1:
+						GameUtil.INSTANCE.setDebug(isChecked);
+						break;
+					case 2:
+						GameUtil.INSTANCE.setFrameSkipEnable(isChecked);
+						break;
+					case 3:
+						GameUtil.INSTANCE.setInvincibleMode(isChecked);
+						break;
+				}
+			}
+		});
+		builder.setPositiveButton("OK", null);
+		builder.show();
 	}
 }

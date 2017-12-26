@@ -1,4 +1,4 @@
-package com.ruanyf.ffstg;
+package com.ruanyf.ffstg.sprites;
 
 import android.graphics.Bitmap;
 
