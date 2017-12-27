@@ -7,9 +7,12 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Shader;
 
+import com.ruanyf.ffstg.scenes.backgrounds.Background;
 import com.ruanyf.ffstg.scenes.backgrounds.BitmapBackground;
 import com.ruanyf.ffstg.GameState;
 import com.ruanyf.ffstg.GameView;
+import com.ruanyf.ffstg.scenes.backgrounds.LightfallBackground;
+import com.ruanyf.ffstg.scenes.backgrounds.StaffBackground;
 import com.ruanyf.ffstg.utils.GameUtil;
 
 import java.util.ArrayList;
@@ -27,7 +30,7 @@ public class StaffScene extends Scene {
 	private Paint mPaint, shadowPaint;
 	private List<Paint> paints;
 
-	private BitmapBackground bitmapBackground;
+	private Background background;
 
 	/**
 	 * 构造
@@ -65,7 +68,7 @@ public class StaffScene extends Scene {
 		paints.add(shadowPaint);
 		paints.add(mPaint);
 
-		bitmapBackground = new BitmapBackground(GameUtil.INSTANCE.getBitmap("background1.png"), 1);
+		background = new StaffBackground();
 	}
 
 	/**
@@ -74,10 +77,10 @@ public class StaffScene extends Scene {
 	@Override
 	public void doLogic() {
 		super.doLogic();
-		bitmapBackground.doLogic();
+		background.doLogic();
 
 		// 15秒后跳转
-		if (getStep() > GameView.FPS * 14) {
+		if (getStep() > GameView.FPS * 28) {
 			setFading(true);
 		}
 
@@ -92,12 +95,12 @@ public class StaffScene extends Scene {
 	public void doDraw(Canvas canvas) {
 
 		// 画背景
-		bitmapBackground.doDraw(canvas);
+		background.doDraw(canvas);
 
 		// 画字幕
 		for (Paint paint : paints) {
 			float x = getScreenWidth() / 2;
-			float y = getScreenHeight() - getStep() * 2 + 20;
+			float y = getScreenHeight() - getStep() + 20;
 
 			paint.setTextSize(24);
 			canvas.drawText("—— STAFF ——", x, y, paint);
@@ -133,14 +136,6 @@ public class StaffScene extends Scene {
 		// 绘制淡入淡出覆盖层
 		if (isFading()) {
 			canvas.drawColor(Color.argb(getFadeOpacity(), 0, 0, 0));
-		}
-
-		// 开启调试的情况下绘制调试信息
-		if (GameUtil.INSTANCE.isDebug()) {
-			String debugLine1 = "- StaffScene -";
-			String debugLine2 = "Step: " + getStep();
-			canvas.drawText(debugLine1, 20, 30, getDebugTextPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugTextPaint());
 		}
 	}
 

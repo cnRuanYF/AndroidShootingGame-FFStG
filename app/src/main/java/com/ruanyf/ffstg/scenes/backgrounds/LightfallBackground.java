@@ -2,6 +2,10 @@ package com.ruanyf.ffstg.scenes.backgrounds;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.Shader;
 
 import com.ruanyf.ffstg.GameView;
 import com.ruanyf.ffstg.sprites.Sprite;
@@ -16,15 +20,23 @@ import java.util.List;
  * Created by Feng on 2017/12/26.
  */
 
-public class lightfallBackground extends Background {
+public class LightfallBackground extends Background {
 
 	private float screenW, screenH;
 	private List<Sprite> meteors;
 	private Bitmap light64Bmp, light128Bmp, light512Bmp, lightLongBmp;
+	private Paint bgPaint;
+	private Shader bgShader;
 
-	public lightfallBackground() {
+	public LightfallBackground() {
 		screenW = ScreenUtil.INSTANCE.getScreenWidth();
 		screenH = ScreenUtil.INSTANCE.getScreenHeight();
+
+		bgShader = new LinearGradient(0, 0, 0, screenH,
+				Color.rgb(0, 0, 64),Color.rgb(0, 64, 64),
+				Shader.TileMode.CLAMP);
+		bgPaint = new Paint();
+		bgPaint.setShader(bgShader);
 
 		light64Bmp = GameUtil.INSTANCE.getBitmap("lights/light_circle_64_a50.png");
 		light128Bmp = GameUtil.INSTANCE.getBitmap("lights/light_circle_128_a50.png");
@@ -79,7 +91,8 @@ public class lightfallBackground extends Background {
 	 */
 	@Override
 	public void doDraw(Canvas canvas) {
-
+//		canvas.drawColor(Color.BLACK);
+		canvas.drawRect(0, 0, screenW, screenH, bgPaint);
 		for (Sprite sprite : meteors) {
 			sprite.doDraw(canvas);
 		}

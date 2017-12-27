@@ -10,6 +10,8 @@ import com.ruanyf.ffstg.WeaponType;
 import com.ruanyf.ffstg.sprites.enemies.Enemy;
 import com.ruanyf.ffstg.sprites.Player;
 import com.ruanyf.ffstg.stages.Stage;
+import com.ruanyf.ffstg.stages.Stage1;
+import com.ruanyf.ffstg.stages.Stage2;
 import com.ruanyf.ffstg.utils.CollisionUtil;
 import com.ruanyf.ffstg.utils.GameUtil;
 import com.ruanyf.ffstg.utils.ScreenUtil;
@@ -211,7 +213,7 @@ public class BattleScene extends Scene {
 		progressBarPaint.setAlpha(192);
 		canvas.drawRect(getScreenWidth() * progress, 0, getScreenWidth(), 18f * (255 - getFadeOpacity()) / 255, progressBarPaint);
 		String progressText = (stage.getStep() < stage.getBossStep() ? " PROGRESS: " : " BOSSLIFE: ")
-				+ NumberFormat.getPercentInstance().format(progress) +" ";
+				+ NumberFormat.getPercentInstance().format(progress) + " ";
 		canvas.drawText(progressText, getScreenWidth() * progress, 15f * (255 - getFadeOpacity()) / 255, progressTextPaint);
 
 		// 游戏胜利或失败的绘制
@@ -233,13 +235,9 @@ public class BattleScene extends Scene {
 
 		// 开启调试的情况下绘制调试信息
 		if (GameUtil.INSTANCE.isDebug()) {
-			String debugLine1 = "- BattleScene -";
-			String debugLine2 = "Step: " + getStep();
-			String debugLine3 = "Boss: "
-					+ (stage.getBoss() != null ? stage.getBoss().getLifeCurrent() + " Life" : "Null");
-			canvas.drawText(debugLine1, 20, 50, getDebugTextPaint());
-			canvas.drawText(debugLine2, 20, 70, getDebugTextPaint());
-			canvas.drawText(debugLine3, 20, 90, getDebugTextPaint());
+			String bossInfo = "BossLife: " + (stage.getBoss() != null ?
+					stage.getBoss().getLifeCurrent() + " / " + stage.getBoss().getLifeTotal() : "?");
+			canvas.drawText(bossInfo, 20, 100, getDebugTextPaint());
 		}
 
 	}
@@ -251,6 +249,9 @@ public class BattleScene extends Scene {
 	public void onEnded() {
 		if (isGameover) {
 			changeScene(GameState.TITLE);
+		} else if (stage instanceof Stage1) {
+			GameUtil.INSTANCE.setCurrentStage(new Stage2());
+			changeScene(GameState.BATTLE);
 		} else {
 			changeScene(GameState.STAFF);
 		}

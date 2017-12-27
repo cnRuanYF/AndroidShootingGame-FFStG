@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
 
 		// 初始化设置
 		GameUtil.INSTANCE.setShowFPS(true);
-		GameUtil.INSTANCE.setDebug(true);
+		GameUtil.INSTANCE.setDebug(false);
 		GameUtil.INSTANCE.setFrameSkipEnable(true);
 		GameUtil.INSTANCE.setInvincibleMode(false);
 

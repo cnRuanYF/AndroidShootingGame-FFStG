@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Build;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -14,12 +15,11 @@ import com.ruanyf.ffstg.scenes.BattleScene;
 import com.ruanyf.ffstg.scenes.Scene;
 import com.ruanyf.ffstg.scenes.SplashScene;
 import com.ruanyf.ffstg.scenes.StaffScene;
+import com.ruanyf.ffstg.scenes.StageChooseScene;
 import com.ruanyf.ffstg.scenes.TitleScene;
 import com.ruanyf.ffstg.sprites.Blast;
 import com.ruanyf.ffstg.sprites.Bullet;
 import com.ruanyf.ffstg.sprites.Player;
-import com.ruanyf.ffstg.stages.Stage;
-import com.ruanyf.ffstg.stages.Stage1;
 import com.ruanyf.ffstg.utils.GameUtil;
 import com.ruanyf.ffstg.utils.ScreenUtil;
 
@@ -70,20 +70,25 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 		gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
 			@Override
 			public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+				// distanceX/Y值为上次onScroll触发时的坐标 - 本次触发时的坐标，所以取负值
 
-				switch (GameUtil.INSTANCE.getGameState()) {
-					case BATTLE:
-						// distanceX/Y值为上次onScroll触发是的坐标 - 本次触发时的坐标，所以取负值
-						((BattleScene) currentScene).getPlayer().move(-distanceX / screenScale, -distanceY / screenScale);
-						break;
-					case STAFF:
-						currentScene.setStep(currentScene.getStep() + (long) (distanceY / screenScale / 2));
-						if (currentScene.getStep() < 0) {
-							currentScene.setStep(0);
-						}
-						break;
-					default:
-						break;
+				// 防止切换场景时移动导致空对象异常
+				if (currentScene != null) {
+					switch (GameUtil.INSTANCE.getGameState()) {
+						case BATTLE:
+							if (((BattleScene) currentScene).getPlayer() != null) {
+								((BattleScene) currentScene).getPlayer().move(-distanceX / screenScale, -distanceY / screenScale);
+							}
+							break;
+						case STAFF:
+							currentScene.setStep(currentScene.getStep() + (long) (distanceY / screenScale / 2));
+							if (currentScene.getStep() < 0) {
+								currentScene.setStep(0);
+							}
+							break;
+						default:
+							break;
+					}
 				}
 				return super.onScroll(e1, e2, distanceX, distanceY);
 			}
@@ -108,9 +113,12 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 	 * 初始化
 	 */
 	private void init() {
-//		currentScene = new SplashScene();
-		currentScene = new TitleScene();
-//		currentScene = new StaffScene();
+		GameUtil.INSTANCE.setGameState(GameState.SPLASH);
+		currentScene = new SplashScene();
+//		GameUtil.INSTANCE.setGameState(GameState.TITLE);
+//		currentScene = new TitleScene();
+//		GameUtil.INSTANCE.setGameState(GameState.CHOOSESTAGE);
+//		currentScene = new StageChooseScene();
 		currentScene.addCallback(this); // 添加回调监听
 	}
 
@@ -130,7 +138,12 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 	 * 绘制操作
 	 */
 	public void doDraw() {
-		canvas = holder.lockCanvas(); // 获取锁定画布
+		// 判断系统版本
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			canvas = holder.lockHardwareCanvas(); // 获取硬件加速画布
+		} else {
+			canvas = holder.lockCanvas(); // 获取锁定画布
+		}
 		if (canvas != null) {
 			canvas.save();
 			canvas.scale(screenScale, screenScale); // 根据缩放比例改变画布坐标系
@@ -142,20 +155,23 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 
 			// 绘制FPS信息
 			if (GameUtil.INSTANCE.isShowFPS()) {
-				String strFrameCount = "FrameCount: " + frameCount;
-				String strFPS, strFPS2;
-
+				String fpsStr1, fpsStr2;
 				if (GameUtil.INSTANCE.isFrameSkipEnable()) {
-					strFPS = "FrameSkipped: " + frameSkipped;
-					strFPS2 = "Ave.FPS: " + FPS * (frameCount - frameSkipped) / frameCount + " / " + FPS;
+					fpsStr1 = "AverageFPS: " + FPS * (frameCount - frameSkipped) / frameCount + " / " + FPS;
+					fpsStr2 = "FrameSkipped: " + frameSkipped + " / " + frameCount;
 				} else {
-					strFPS = "DesignFPS: " + FPS;
-					strFPS2 = "";
+					fpsStr1 = "DesignFPS: " + FPS;
+					fpsStr2 = "FrameCount: " + frameCount;
 				}
+				canvas.drawText(fpsStr1, 20, screenHeight - 40, debugPaint);
+				canvas.drawText(fpsStr2, 20, screenHeight - 20, debugPaint);
+			}
 
-				canvas.drawText(strFrameCount, 20, screenHeight - 10, debugPaint);
-				canvas.drawText(strFPS, 20, screenHeight - 30, debugPaint);
-				canvas.drawText(strFPS2, 20, screenHeight - 50, debugPaint);
+			// Debug
+			if (GameUtil.INSTANCE.isDebug()) {
+				canvas.drawText("GameState: " + GameUtil.INSTANCE.getGameState(), 20, 40, debugPaint);
+				canvas.drawText("Step: " + currentScene.getStep(), 20, 60, debugPaint);
+				canvas.drawText("FadeOpacity: " + currentScene.getFadeOpacity(), 20, 80, debugPaint);
 			}
 
 			canvas.restore(); // 还原画布坐标系
@@ -173,10 +189,10 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 		currentScene = null;
 		switch (GameUtil.INSTANCE.getGameState()) {
 			case BATTLE:
-				// TODO 默认战斗
+				// TODO 玩家属性暂时不变
 				List<Bullet> bullets = new ArrayList<>();
 				for (int i = 0; i < 100; i++) {
-					Bullet bullet = new Bullet(GameUtil.INSTANCE.getBitmap("bullet1.png"));
+					Bullet bullet = new Bullet(GameUtil.INSTANCE.getBitmap("bullet_up_blue_middle.png"));
 					bullets.add(bullet);
 				}
 				Player testPlayer = new Player(GameUtil.INSTANCE.getBitmap("player_green.png"));
@@ -185,7 +201,7 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 				testPlayer.setBullets(bullets);
 				Bitmap blastBmp = GameUtil.INSTANCE.getBitmap("blast_green_middle.png");
 				testPlayer.setBlast(new Blast(blastBmp, blastBmp.getWidth() / 15, blastBmp.getHeight()));
-				currentScene = new BattleScene(new Stage1());
+				currentScene = new BattleScene(GameUtil.INSTANCE.getCurrentStage());
 				((BattleScene) currentScene).setPlayer(testPlayer);
 				break;
 			case SPLASH:
@@ -193,6 +209,9 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 				break;
 			case TITLE:
 				currentScene = new TitleScene();
+				break;
+			case CHOOSESTAGE:
+				currentScene = new StageChooseScene();
 				break;
 			case STAFF:
 				currentScene = new StaffScene();
@@ -243,7 +262,7 @@ public class GameView extends SurfaceView implements Scene.Callback, SurfaceHold
 
 			// 若启用跳帧 & 休眠时间<0，代表绘制时间过长，进行跳帧，只到需要休眠
 			while (GameUtil.INSTANCE.isFrameSkipEnable() && sleepTime < 0) {
-				doLogic(); // 进更新逻辑不进行绘制
+				doLogic(); // 仅更新逻辑不进行绘制
 				frameSkipped++;
 				sleepTime += FRAME_PERIOD;
 			}

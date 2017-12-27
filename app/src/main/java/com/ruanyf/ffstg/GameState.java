@@ -5,5 +5,5 @@ package com.ruanyf.ffstg;
  * Created by Feng on 2017/12/23.
  */
 public enum GameState {
-	SPLASH, TITLE, BATTLE, STAFF
+	SPLASH, TITLE, CHOOSESTAGE, BATTLE, STAFF
 }

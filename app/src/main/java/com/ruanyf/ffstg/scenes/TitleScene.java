@@ -10,7 +10,7 @@ import android.graphics.Shader;
 import com.ruanyf.ffstg.GameState;
 import com.ruanyf.ffstg.MainActivity;
 import com.ruanyf.ffstg.scenes.backgrounds.Background;
-import com.ruanyf.ffstg.scenes.backgrounds.lightfallBackground;
+import com.ruanyf.ffstg.scenes.backgrounds.LightfallBackground;
 import com.ruanyf.ffstg.utils.GameUtil;
 
 import java.util.ArrayList;
@@ -47,8 +47,8 @@ public class TitleScene extends Scene {
 		screenCenterX = getScreenWidth() / 2;
 		screenCenterY = getScreenHeight() / 2;
 		menuY = screenCenterY + 48;
-		background = new lightfallBackground();
-		setFadeSpeed(5);
+		background = new LightfallBackground();
+		setFadeSpeed(8);
 
 		// Logo绘制相关初始化
 		logoPaint = new Paint();
@@ -106,7 +106,6 @@ public class TitleScene extends Scene {
 					} else if (i == MENU_SETTING) {
 						GameUtil.INSTANCE.showGameSetting();
 					} else {
-						setFadeSpeed(8);
 						setFading(true);
 						selectedMenuIndex = i;
 					}
@@ -154,7 +153,7 @@ public class TitleScene extends Scene {
 	public void doDraw(Canvas canvas) {
 
 		// 绘制背景
-		canvas.drawColor(Color.BLACK);
+//		canvas.drawColor(Color.BLACK);
 		background.doDraw(canvas);
 
 		// 绘制游戏LOGO
@@ -200,11 +199,6 @@ public class TitleScene extends Scene {
 			for (RectF r : menuAreas) {
 				canvas.drawRect(r, getDebugShapePaint());
 			}
-
-			String debugLine1 = "- TitleScene -";
-			String debugLine2 = "Step: " + getStep();
-			canvas.drawText(debugLine1, 20, 30, getDebugTextPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugTextPaint());
 		}
 	}
 
@@ -215,7 +209,7 @@ public class TitleScene extends Scene {
 	public void onEnded() {
 		switch (selectedMenuIndex) {
 			case MENU_START: // 开始游戏
-				changeScene(GameState.BATTLE);
+				changeScene(GameState.CHOOSESTAGE);
 				break;
 			case MENU_STAFF: // 制作人名单
 				changeScene(GameState.STAFF);

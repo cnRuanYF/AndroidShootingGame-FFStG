@@ -288,10 +288,10 @@ public class Sprite {
 		if (isVisible) { // 可见时才绘制
 			// 若存在单张图片，按照单张图片方式绘制
 			if (bitmap != null) {
-				src.set((int) frameX[frameSequance[frameSequanceIndex]],
-						(int) frameY[frameSequance[frameSequanceIndex]],
-						(int) (frameX[frameSequance[frameSequanceIndex]] + width),
-						(int) (frameY[frameSequance[frameSequanceIndex]] + height));
+				src.set(frameX[frameSequance[frameSequanceIndex]],
+						frameY[frameSequance[frameSequanceIndex]],
+						frameX[frameSequance[frameSequanceIndex]] + (int) width,
+						frameY[frameSequance[frameSequanceIndex]] + (int) height);
 				dst.set((int) x, (int) y, (int) (x + width), (int) (y + height));
 				canvas.drawBitmap(bitmap, src, dst, null);
 			} else if (bitmapList != null) { // 图片列表不为空则按照多张图片方式绘制
@@ -302,6 +302,7 @@ public class Sprite {
 			if (GameUtil.INSTANCE.isDebug()) {
 				canvas.drawText("" + step, x, y, debugTextPaint);
 				canvas.drawRect(x, y, x + width, y + height, debugShapePaint);
+				canvas.drawCircle(getCenterX(), getCenterY(), (width < height ? width : height) / 2, debugShapePaint);
 			}
 		}
 	}

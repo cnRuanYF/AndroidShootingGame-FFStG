@@ -125,12 +125,8 @@ public class SplashScene extends Scene {
 
 		// 开启调试的情况下绘制调试信息
 		if (GameUtil.INSTANCE.isDebug()) {
-			String debugLine1 = "- SplashScene -";
-			String debugLine2 = "Step: " + getStep();
-			String debugLine3 = "fadeOpacity: " + fadeOpacity;
-			canvas.drawText(debugLine1, 20, 30, getDebugTextPaint());
-			canvas.drawText(debugLine2, 20, 50, getDebugTextPaint());
-			canvas.drawText(debugLine3, 20, 70, getDebugTextPaint());
+			String fadeDebug = "(Splash)fadeOpacity: " + fadeOpacity;
+			canvas.drawText(fadeDebug, 20, 100, getDebugTextPaint());
 		}
 	}
 }

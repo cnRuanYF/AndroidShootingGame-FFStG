@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.ruanyf.ffstg.GameState;
+import com.ruanyf.ffstg.stages.Stage;
 
 import java.io.IOException;
 
@@ -19,6 +20,7 @@ public enum GameUtil {
 
 	private Context context;
 	private GameState gameState;
+	private Stage currentStage;
 
 	private boolean isShowFPS, isDebug, isFrameSkipEnable, isInvincibleMode;
 
@@ -36,6 +38,14 @@ public enum GameUtil {
 
 	public void setGameState(GameState gameState) {
 		this.gameState = gameState;
+	}
+
+	public Stage getCurrentStage() {
+		return currentStage;
+	}
+
+	public void setCurrentStage(Stage currentStage) {
+		this.currentStage = currentStage;
 	}
 
 	/**

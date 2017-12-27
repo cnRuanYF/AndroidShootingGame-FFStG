@@ -14,7 +14,7 @@ import com.ruanyf.ffstg.utils.ScreenUtil;
  */
 public abstract class Scene {
 
-	private boolean isFading; // 正在渐变
+	private boolean isFading, isFadingIn; // 正在渐变
 	private int fadeOpacity; // 渐变透明度
 	private int fadeSpeed; // 渐变速度
 
@@ -37,6 +37,7 @@ public abstract class Scene {
 
 	public Scene() {
 		isFading = true;
+		isFadingIn = true;
 		fadeOpacity = 255;
 		fadeSpeed = 2;
 
@@ -143,11 +144,12 @@ public abstract class Scene {
 
 		// 场景切换渐变效果
 		if (isFading) {
-			if (step < 255) { // 淡入
+			if (isFadingIn) { // 淡入
 				fadeOpacity -= fadeSpeed;
 				if (fadeOpacity <= 0) {
 					fadeOpacity = 0;
 					isFading = false;
+					isFadingIn = false;
 				}
 			} else { // 淡出
 				fadeOpacity += fadeSpeed;
